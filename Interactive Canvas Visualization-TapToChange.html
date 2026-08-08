@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Shape Generative Engine</title>
+  <style>
+    :root {
+      --primary-color: #f59e0b;
+      --primary-glow: #fbbf24;
+      --primary-dark: #d97706;
+      --bg-color: #070503;
+      --bg-card: rgba(18, 14, 9, 0.75);
+      --bg-card-hover: rgba(28, 22, 14, 0.85);
+      --border-color: rgba(245, 158, 11, 0.2);
+      --border-color-hover: rgba(245, 158, 11, 0.5);
+      --text-main: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.72);
+      --text-dim: rgba(255, 255, 255, 0.45);
+      --code-bg: #0d0a06;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      width: 100%;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      background-color: var(--bg-color);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      color: var(--text-main);
+      position: relative;
+    }
+
+    /* Fixed Canvas Background */
+    #vortex-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Dynamic Multi-Shape Canvas Background -->
+  <canvas id="vortex-canvas"></canvas>
+
+ 
+  <!-- Dynamic Theme Badge Floating Widget -->
+  <div class="theme-badge">
+    <span id="theme-name"></span>
+  </div>
+
+  <!-- Generative Canvas Script -->
+  <script>
+    const canvas = document.getElementById('vortex-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    const edgeStreamers = [];
+
+    // =========================================================
+    // 12 DISTINCT SHAPE ARCHETYPES (Medium Speed Preset Array)
+    // =========================================================
+    const SHAPE_PRESETS = [
+      {
+        id: "wavy",
+        name: "Wavy Flow Streams",
+        count: 180,
+        trailLength: 45,
+        speedMin: 0.9,
+        speedMax: 1.6,
+        colors: ['#ffffff', '#fef08a', '#f59e0b', '#d97706', '#9a3412']
+      },
+      {
+        id: "straight",
+        name: "Laser Beam Lines",
+        count: 160,
+        trailLength: 55,
+        speedMin: 0.9,
+        speedMax: 1.6,
+        colors: ['#ffffff', '#fffbeb', '#fde047', '#f59e0b', '#b45309']
+      },
+      {
+        id: "zigzag",
+        name: "Circuit Tech Traces",
+        count: 150,
+        trailLength: 40,
+        speedMin: 0.9,
+        speedMax: 1.6,
+        colors: ['#ffffff', '#fed7aa', '#f97316', '#ea580c', '#9a3412']
+      },
+      {
+        id: "curved_arcs",
+        name: "Orbital Arc Streams",
+        count: 160,
+        trailLength: 50,
+        speedMin: 0.9,
+        speedMax: 1.6,
+        colors: ['#ffffff', '#fef3c7', '#fbbf24', '#d97706', '#78350f']
+      },
+      {
+        id: "dotted",
+        name: "Dotted Particle Beams",
+        count: 200,
+        trailLength: 35,
+        speedMin: 0.9,
+        speedMax: 1.6,
+        colors: ['#ffffff', '#fef08a', '#f59e0b', '#ea580c', '#ca8a04']
+      },
+      {
+        id: "diamonds",
+        name: "Floating Rhombus Diamonds",
+        count: 130,
+        trailLength: 25,
+        speedMin: 0.9,
+        speedMax: 1.6,
+        colors: ['#ffffff', '#fef08a', '#f59e0b', '#d97706', '#78350f']
+      },
+      {
+        id: "triangles",
+        name: "Delta Vectors (Triangles)",
+        count: 120,
+        trailLength: 20,
+        speedMin: 0.9,
+        speedMax: 1.6,
+        colors: ['#ffffff', '#fde047', '#f59e0b', '#ea580c', '#9a3412']
+      },
+      {
+        id: "hexagons",
+        name: "Hexagonal Mesh Cells",
+        count: 110,
+        trailLength: 18,
+        speedMin: 0.9,
+        speedMax: 1.6,
+        colors: ['#ffffff', '#fffbeb', '#fbbf24', '#d97706', '#b45309']
+      },
+      {
+        id: "crosses",
+        name: "Matrix Plus Nodes (+)",
+        count: 140,
+        trailLength: 22,
+        speedMin: 0.9,
+        speedMax: 1,
+        colors: ['#ffffff', '#fed7aa', '#f59e0b', '#f97316', '#78350f']
+      },
+      {
+        id: "rings",
+        name: "Pulsing Ring Rings",
+        count: 110,
+        trailLength: 18,
+        speedMin: 0.9,  
+        speedMax: 1.6,
+        colors: ['#ffffff', '#fef08a', '#fbbf24', '#d97706', '#9a3412']
+      },
+      {
+        id: "spiral",
+        name: "Helix Spiral Trajectories",
+        count: 150,
+        trailLength: 40,
+        speedMin: 0.9,
+        speedMax: 1.6,
+        colors: ['#ffffff', '#fef3c7', '#f59e0b', '#ea580c', '#b45309']
+      },
+      {
+        id: "pixels",
+        name: "Modular Pixel Blocks",
+        count: 170,
+        trailLength: 30,
+        speedMin: 0.9,
+        speedMax: 1.6   ,
+        colors: ['#ffffff', '#fde047', '#f59e0b', '#d97706', '#78350f']
+      }
+    ];
+
+    // Pick a completely different shape preset on every single refresh
+    function pickRandomShapePreset() {
+      const lastIndex = parseInt(localStorage.getItem('zensical_shape_index') || "-1");
+      let newIndex;
+      do {
+        newIndex = Math.floor(Math.random() * SHAPE_PRESETS.length);
+      } while (newIndex === lastIndex && SHAPE_PRESETS.length > 1);
+
+      localStorage.setItem('zensical_shape_index', newIndex);
+      return SHAPE_PRESETS[newIndex];
+    }
+
+    const currentShapePreset = pickRandomShapePreset();
+
+    // Update Theme Badge UI text
+    document.getElementById('theme-name').textContent = currentShapePreset.name;
+
+    function hexToRgba(hex, alpha) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    // =========================================================
+    // MEDIUM SPEED STREAMER CLASS (SUPPORTS ALL 12 SHAPE TYPES)
+    // =========================================================
+    class EdgeStreamer {
+      constructor(sideIndex) {
+        // 0: TOP, 1: RIGHT, 2: BOTTOM, 3: LEFT
+        this.side = sideIndex;
+        this.reset(true);
+      }
+
+      reset(initial = false) {
+        this.history = [];
+        this.life = initial ? Math.floor(Math.random() * 250) : 0;
+        this.maxLife = 250 + Math.random() * 250;
+        
+        // Balanced Medium Speed Range
+        this.speed = currentShapePreset.speedMin + Math.random() * (currentShapePreset.speedMax - currentShapePreset.speedMin); 
+        
+        this.waveFreq = 0.008 + Math.random() * 0.012; 
+        this.waveAmp = 1.2 + Math.random() * 2.5;
+        this.size = 2.5 + Math.random() * 4.5;
+        this.lineWidth = 1.0 + Math.random() * 1.5;
+        this.rotation = Math.random() * Math.PI * 2;
+        this.rotSpeed = (Math.random() - 0.5) * 0.06;
+        this.colorIndex = Math.floor(Math.random() * currentShapePreset.colors.length);
+
+        // Circuit Zigzag Step Tracking
+        this.stepTimer = 0;
+        this.dirX = 0;
+        this.dirY = 0;
+
+        // Position coordinates strictly along chosen side
+        switch(this.side) {
+          case 0: // TOP -> Moves medium speed down
+            this.x = Math.random() * width;
+            this.y = -30;
+            this.vx = (Math.random() - 0.5) * 0.3;
+            this.vy = this.speed;
+            this.dirX = 0; this.dirY = this.speed;
+            break;
+          case 1: // RIGHT -> Moves medium speed left
+            this.x = width + 30;
+            this.y = Math.random() * height;
+            this.vx = -this.speed;
+            this.vy = (Math.random() - 0.5) * 0.3;
+            this.dirX = -this.speed; this.dirY = 0;
+            break;
+          case 2: // BOTTOM -> Moves medium speed up
+            this.x = Math.random() * width;
+            this.y = height + 30;
+            this.vx = (Math.random() - 0.5) * 0.3;
+            this.vy = -this.speed;
+            this.dirX = 0; this.dirY = -this.speed;
+            break;
+          case 3: // LEFT -> Moves medium speed right
+            this.x = -30;
+            this.y = Math.random() * height;
+            this.vx = this.speed;
+            this.vy = (Math.random() - 0.5) * 0.3;
+            this.dirX = this.speed; this.dirY = 0;
+            break;
+        }
+      }
+
+      update(time) {
+        this.history.unshift({ x: this.x, y: this.y, rot: this.rotation });
+        if (this.history.length > currentShapePreset.trailLength) {
+          this.history.pop();
+        }
+
+        this.rotation += this.rotSpeed;
+
+        // TRAJECTORY DYNAMICS BASED ON ACTIVE SHAPE
+        switch(currentShapePreset.id) {
+          case "wavy":
+            if (this.side === 0 || this.side === 2) {
+              this.x += Math.sin(time * this.waveFreq + this.life * 0.02) * this.waveAmp;
+              this.y += this.vy;
+            } else {
+              this.x += this.vx;
+              this.y += Math.cos(time * this.waveFreq + this.life * 0.02) * this.waveAmp;
+            }
+            break;
+
+          case "straight":
+          case "pixels":
+          case "crosses":
+          case "rings":
+            this.x += this.vx;
+            this.y += this.vy;
+            break;
+
+          case "zigzag":
+            this.stepTimer++;
+            if (this.stepTimer % 35 === 0) {
+              if (Math.random() > 0.4) {
+                if (this.side === 0 || this.side === 2) {
+                  this.dirX = (Math.random() > 0.5 ? 1 : -1) * this.speed;
+                  this.dirY = 0;
+                } else {
+                  this.dirX = 0;
+                  this.dirY = (Math.random() > 0.5 ? 1 : -1) * this.speed;
+                }
+              } else {
+                if (this.side === 0) { this.dirX = 0; this.dirY = this.speed; }
+                else if (this.side === 1) { this.dirX = -this.speed; this.dirY = 0; }
+                else if (this.side === 2) { this.dirX = 0; this.dirY = -this.speed; }
+                else if (this.side === 3) { this.dirX = this.speed; this.dirY = 0; }
+              }
+            }
+            this.x += this.dirX;
+            this.y += this.dirY;
+            break;
+
+          case "curved_arcs":
+            const angle = time * 0.005 + (this.life * 0.01);
+            if (this.side === 0 || this.side === 2) {
+              this.x += Math.cos(angle) * (this.waveAmp * 1.8);
+              this.y += this.vy;
+            } else {
+              this.x += this.vx;
+              this.y += Math.sin(angle) * (this.waveAmp * 1.8);
+            }
+            break;
+
+          case "dotted":
+          case "diamonds":
+          case "triangles":
+          case "hexagons":
+            this.x += this.vx + Math.sin(this.life * 0.04) * 0.5;
+            this.y += this.vy + Math.cos(this.life * 0.04) * 0.5;
+            break;
+
+          case "spiral":
+            const spiralOffset = Math.sin(this.life * 0.1) * (this.waveAmp * 2.0);
+            if (this.side === 0 || this.side === 2) {
+              this.x += spiralOffset;
+              this.y += this.vy;
+            } else {
+              this.x += this.vx;
+              this.y += spiralOffset;
+            }
+            break;
+        }
+
+        this.life++;
+
+        if (
+          this.life > this.maxLife ||
+          this.x < -100 || this.x > width + 100 ||
+          this.y < -100 || this.y > height + 100
+        ) {
+          this.reset();
+        }
+      }
+
+      draw() {
+        if (this.history.length < 2) return;
+
+        const fade = Math.sin((this.life / this.maxLife) * Math.PI);
+        const hexColor = currentShapePreset.colors[this.colorIndex];
+        const rgbaColor = hexToRgba(hexColor, fade * 0.7);
+
+        ctx.strokeStyle = rgbaColor;
+        ctx.fillStyle = rgbaColor;
+        ctx.lineWidth = this.lineWidth;
+
+        // DRAWING DISPATCHER FOR THE 12 SHAPES
+        switch(currentShapePreset.id) {
+          case "wavy":
+          case "straight":
+          case "zigzag":
+          case "curved_arcs":
+          case "spiral":
+            ctx.beginPath();
+            ctx.moveTo(this.history[0].x, this.history[0].y);
+            for (let i = 1; i < this.history.length; i++) {
+              ctx.lineTo(this.history[i].x, this.history[i].y);
+            }
+            ctx.stroke();
+            break;
+
+          case "dotted":
+            for (let i = 0; i < this.history.length; i += 2) {
+              const pFade = fade * (1 - i / this.history.length);
+              ctx.fillStyle = hexToRgba(hexColor, pFade);
+              ctx.beginPath();
+              ctx.arc(this.history[i].x, this.history[i].y, this.size * 0.6, 0, Math.PI * 2);
+              ctx.fill();
+            }
+            break;
+
+          case "diamonds":
+            for (let i = 0; i < this.history.length; i += 4) {
+              const p = this.history[i];
+              const pFade = fade * (1 - i / this.history.length);
+              ctx.strokeStyle = hexToRgba(hexColor, pFade);
+              ctx.save();
+              ctx.translate(p.x, p.y);
+              ctx.rotate(p.rot);
+              ctx.beginPath();
+              ctx.moveTo(0, -this.size * 1.5);
+              ctx.lineTo(this.size, 0);
+              ctx.lineTo(0, this.size * 1.5);
+              ctx.lineTo(-this.size, 0);
+              ctx.closePath();
+              ctx.stroke();
+              ctx.restore();
+            }
+            break;
+
+          case "triangles":
+            for (let i = 0; i < this.history.length; i += 4) {
+              const p = this.history[i];
+              const pFade = fade * (1 - i / this.history.length);
+              ctx.strokeStyle = hexToRgba(hexColor, pFade);
+              ctx.save();
+              ctx.translate(p.x, p.y);
+              ctx.rotate(p.rot);
+              ctx.beginPath();
+              ctx.moveTo(0, -this.size * 1.4);
+              ctx.lineTo(this.size * 1.2, this.size);
+              ctx.lineTo(-this.size * 1.2, this.size);
+              ctx.closePath();
+              ctx.stroke();
+              ctx.restore();
+            }
+            break;
+
+          case "hexagons":
+            for (let i = 0; i < this.history.length; i += 5) {
+              const p = this.history[i];
+              const pFade = fade * (1 - i / this.history.length);
+              ctx.strokeStyle = hexToRgba(hexColor, pFade);
+              ctx.save();
+              ctx.translate(p.x, p.y);
+              ctx.rotate(p.rot);
+              ctx.beginPath();
+              for (let h = 0; h < 6; h++) {
+                const angle = (Math.PI / 3) * h;
+                const hx = Math.cos(angle) * this.size * 1.3;
+                const hy = Math.sin(angle) * this.size * 1.3;
+                if (h === 0) ctx.moveTo(hx, hy);
+                else ctx.lineTo(hx, hy);
+              }
+              ctx.closePath();
+              ctx.stroke();
+              ctx.restore();
+            }
+            break;
+
+          case "crosses":
+            for (let i = 0; i < this.history.length; i += 4) {
+              const p = this.history[i];
+              const pFade = fade * (1 - i / this.history.length);
+              ctx.strokeStyle = hexToRgba(hexColor, pFade);
+              ctx.save();
+              ctx.translate(p.x, p.y);
+              ctx.rotate(p.rot);
+              ctx.beginPath();
+              ctx.moveTo(-this.size, 0); ctx.lineTo(this.size, 0);
+              ctx.moveTo(0, -this.size); ctx.lineTo(0, this.size);
+              ctx.stroke();
+              ctx.restore();
+            }
+            break;
+
+          case "rings":
+            for (let i = 0; i < this.history.length; i += 4) {
+              const p = this.history[i];
+              const pFade = fade * (1 - i / this.history.length);
+              ctx.strokeStyle = hexToRgba(hexColor, pFade);
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, this.size * 1.2, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+            break;
+
+          case "pixels":
+            for (let i = 0; i < this.history.length; i += 3) {
+              const p = this.history[i];
+              const pFade = fade * (1 - i / this.history.length);
+              ctx.fillStyle = hexToRgba(hexColor, pFade);
+              ctx.fillRect(p.x - this.size, p.y - this.size, this.size * 1.8, this.size * 1.8);
+            }
+            break;
+        }
+      }
+    }
+
+    function initStreamers() {
+      edgeStreamers.length = 0;
+      for (let i = 0; i < currentShapePreset.count; i++) {
+        const side = i % 4; // Cycles Top (0), Right (1), Bottom (2), Left (3)
+        edgeStreamers.push(new EdgeStreamer(side));
+      }
+    }
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      initStreamers();
+    }
+
+    let globalTime = 0;
+
+    function animate() {
+      globalTime++;
+
+      ctx.fillStyle = '#070503';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.globalCompositeOperation = 'lighter';
+
+      // Render streaming items across canvas
+      for (let i = 0; i < edgeStreamers.length; i++) {
+        edgeStreamers[i].update(globalTime);
+        edgeStreamers[i].draw();
+      }
+
+      ctx.globalCompositeOperation = 'source-over';
+
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    animate();
+  </script>
+</body>
+</html>
