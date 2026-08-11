@@ -6,10 +6,8 @@ The project combines procedural motion, multiple geometric shape systems, fading
 
 ## ✨ Features
 
-- 12 distinct procedural visualization presets
 - Full-screen responsive Canvas rendering
 - Animated edge-based particle streamers
-- Configurable particle count and trail length
 - Multiple motion behaviours
 - Rotating geometric shapes
 - Fading particle trails
@@ -25,15 +23,7 @@ The project combines procedural motion, multiple geometric shape systems, fading
 | 01 | Wavy Flow Streams | Smooth sinusoidal trajectories |
 | 02 | Laser Beam Lines | Straight glowing streams |
 | 03 | Circuit Tech Traces | Angular zigzag paths |
-| 04 | Orbital Arc Streams | Curved orbital motion |
-| 05 | Dotted Particle Beams | Dotted particle trails |
-| 06 | Floating Rhombus Diamonds | Rotating diamond outlines |
-| 07 | Delta Vectors | Triangle-based particles |
-| 08 | Hexagonal Mesh Cells | Rotating hexagonal outlines |
-| 09 | Matrix Plus Nodes | Cross-shaped nodes |
-| 10 | Pulsing Ring Rings | Circular particle trails |
-| 11 | Helix Spiral Trajectories | Spiral motion patterns |
-| 12 | Modular Pixel Blocks | Pixel-style particles |
+.. etc 
 
 ## 🛠️ Technology
 
@@ -207,108 +197,23 @@ To create a new visualization:
 4. Add its movement behaviour to `EdgeStreamer.update()`.
 5. Add its rendering behaviour to `EdgeStreamer.draw()`.
 
-This makes the engine easy to extend with new procedural shapes and animation systems.
 
-## 📱 Responsive Behaviour
+## About Me 
+✨ I’m **Sufyan bin Uzayr**, an open-source developer passionate about building and sharing meaningful projects.
+You can learn more about me and my work at [sufyanism.com](https://sufyanism.com/) or connect with me on [Linkedin](https://www.linkedin.com/in/sufyanism)
 
-The Canvas automatically follows the browser viewport:
+## Your all-in-one learning hub! 
+🚀 Explore courses and resources in coding, tech, and development at **zeba.academy** and **code.zeba.academy**. Empower yourself with practical skills through curated tutorials, real-world projects, and hands-on experience. Level up your tech game today! 💻✨
 
-```javascript
-width = canvas.width = window.innerWidth;
-height = canvas.height = window.innerHeight;
-```
+**Zeba Academy**  is a learning platform dedicated to **coding**, **technology**, and **development**.  
+➡ Visit our main site: [zeba.academy](https://zeba.academy)   </br>
+➡ Explore hands-on courses and resources at: [code.zeba.academy](https://code.zeba.academy)   </br>
+➡ Check out our YouTube for more tutorials: [zeba.academy](https://www.youtube.com/@zeba.academy)  </br>
+➡ Follow us on Instagram: [zeba.academy](https://www.instagram.com/zeba.academy/)  </br>
 
-The streamers are reinitialized whenever the window is resized.
+**Thank you for visiting!**
 
-## 💡 Use Cases
 
-This project can be used for:
 
-- Website hero backgrounds
-- Documentation websites
-- Landing pages
-- Portfolio websites
-- Generative art
-- Creative coding experiments
-- Digital installations
-- Interactive visual effects
-- Screensaver-style animations
-- Abstract UI backgrounds
 
-## ⚡ Performance
 
-Performance depends primarily on:
-
-- Number of streamers
-- Trail length
-- Shape complexity
-- Canvas resolution
-- Device hardware
-
-For lower-powered devices, reduce:
-
-```javascript
-count
-```
-
-and:
-
-```javascript
-trailLength
-```
-
-For very large particle systems, WebGL or WebGPU would provide better GPU acceleration.
-
-## 🔮 Future Improvements
-
-Potential additions include:
-
-- Mouse interaction
-- Touch controls
-- Live preset switching
-- Speed controls
-- Particle density controls
-- Colour-palette editor
-- Pause/resume controls
-- Fullscreen mode
-- PNG export
-- SVG export
-- Audio-reactive visualizations
-- WebGL/WebGPU rendering
-- GPU-accelerated particles
-- Visual preset editor
-
-## 🌐 Deployment
-
-The project is suitable for static hosting:
-
-- GitHub Pages
-- Netlify
-- Vercel
-- Cloudflare Pages
-- cPanel
-- Apache
-- Nginx
-- Any static web server
-
-No backend is required.
-
-## 📜 License
-
-Add a license to the repository according to how you want the project to be reused and distributed.
-
-## 👨‍💻 Author
-
-**Sufyan Mustafa**
-
-GitHub: [@sufyanism](https://github.com/sufyanism)
-
-## ⭐ Contributing
-
-Ideas, new shape presets, performance improvements, and visual experiments are welcome.
-
-If you create a new visualization preset, consider contributing it back to the project.
-
----
-
-**Built with HTML5 Canvas, JavaScript, procedural motion, and generative graphics.**
