@@ -197,6 +197,9 @@ To create a new visualization:
 4. Add its movement behaviour to `EdgeStreamer.update()`.
 5. Add its rendering behaviour to `EdgeStreamer.draw()`.
 
+## Demo
+https://github.com/user-attachments/assets/cdfde0db-5325-4e7a-8d75-f0f75ac4ff22
+
 
 ## About Me 
 ✨ I’m **Sufyan bin Uzayr**, an open-source developer passionate about building and sharing meaningful projects.
